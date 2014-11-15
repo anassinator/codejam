@@ -1,13 +1,9 @@
 #requires input from get_leftside_average(self) & get_rightside_average(self)
 
-def center_face(self):
+def crop_and_center(self):
     leftside_face = self.get_leftside_average()
     rightside_face = self.get_rightside_average()
-    face_width = leftside_face - rightside_face
-    crop_and_center(face_width)
-    
-
-def crop_and_center(self, face_width):
-    whitespace = (200 - face_width)/2
-    self.crop((self.get_leftside_average - whitespace), 0, self.get_rightside_average + whitespace, self.size[1])
-    
+    face_center = (leftside_face + rightside_face) / 2
+    left_edge_crop = face_center - self.size[1] / 2
+    right_edge_crop = face_center + self.size[1] / 2
+    self.bmp.crop(left_edge_crop, 0, right_edge_crop, self.size[1])    
