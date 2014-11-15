@@ -25,3 +25,4 @@ def get_rightside_average(self):
                 break
 
     return np.median(right_most_points)
+
