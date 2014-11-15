@@ -1,6 +1,6 @@
 """Image."""
 
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageDraw
 import numpy as np
 import os
 
@@ -26,7 +26,7 @@ class DatabaseImage(object):
         """Find edges of image."""
         smooth = self.bmp.filter(ImageFilter.SMOOTH)
         edges = smooth.filter(ImageFilter.FIND_EDGES)
-        self.bmp = edges
+        return edges
         # WIP
 
     @property
@@ -44,39 +44,53 @@ class DatabaseImage(object):
 
         return np.matrix(matrix)
 
-def crop_and_center(self):
-    leftside_face = self.get_leftside_average()
-    rightside_face = self.get_rightside_average()
-    face_center = (leftside_face + rightside_face) / 2
-    left_edge_crop = face_center - self.size[1] / 2
-    right_edge_crop = face_center + self.size[1] / 2
-    self.bmp.crop(left_edge_crop, 0, right_edge_crop, self.size[1])    
-  
-   def get_leftside_average(self):
-    """Return the value of the Average of the left_most_points."""
-    width = self.size[0]
-    height = self.size[1]
-    left_most_points = []
-    for row in range(height):
-        for column in range(width/2):
-            if self.bmp.getpixel(row, column) > 200:
-                left_most_points.append(column)
-                break
+    def crop_and_center(self):
+        img = self.edges()
+        leftside_face = self.get_leftside_average(img)
+        rightside_face = self.get_rightside_average(img)
 
-    return np.median(left_most_points)
+        draw = ImageDraw.Draw(self.bmp)
+        draw.rectangle([leftside_face, self.size[1] / 5,
+                       rightside_face, 6 * self.size[1] / 7],
+                       outline=0)
+        self.bmp.show()
 
-def get_rightside_average(self):
-    """Return the value of the average of the right_most_points."""
-    width = self.size[0]
-    height = self.size[1]
-    right_most_points = []
-    for row in range(height):       
-        for column in range(width, width / 2, -1):     
-            if self.bmp.getpixel(row column) > 200:
-                right_most_points.append(column)
-                break
+        face_center = (leftside_face + rightside_face) / 2
+        left_edge_crop = face_center - self.size[1] / 2
+        right_edge_crop = face_center + self.size[1] / 2
 
-    return np.median(right_most_points)
+        return self.bmp.crop(
+            [left_edge_crop, 0, right_edge_crop, self.size[1]]
+        )
+
+    def get_leftside_average(self, img):
+        """Return the value of the average of the left_most_points."""
+        width = img.size[0]
+        height = img.size[1]
+
+        left_most_points = []
+        for y in range(int(height / 5), int(6 * height / 7)):
+            for x in range(width / 4, width / 2):
+                if img.getpixel((x, y)) > 200:
+                    left_most_points.append(x)
+                    break
+
+        return int(np.median(left_most_points))
+
+    def get_rightside_average(self, img):
+        """Return the value of the average of the right_most_points."""
+        width = img.size[0]
+        height = img.size[1]
+
+        right_most_points = []
+        for y in range(int(height / 5), int(6 * height / 7)):
+            for x in range(3 * width / 4, width / 2, -1):
+                if img.getpixel((x, y)) > 200:
+                    right_most_points.append(x)
+                    break
+
+        return int(np.median(right_most_points))
+
 
 def get_images():
     """Get images."""
@@ -90,5 +104,5 @@ def get_images():
 if __name__ == '__main__':
     for image in get_images():
         image.bmp.show()
-        print image.matrix
+        image.crop_and_center().show()
         break
