@@ -105,7 +105,7 @@ def get_faces():
 
 if __name__ == '__main__':
     for face in get_faces():
-        # face.img.show()
+        face.img.show()
         print face.size
         print np.shape(face.vector)
         break
