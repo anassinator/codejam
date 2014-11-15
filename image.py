@@ -1,16 +1,16 @@
-"""Image."""
+"""Face."""
 
 from PIL import Image, ImageFilter
 import numpy as np
 import os
 
 
-class DatabaseImage(object):
+class Face(object):
 
-    """Image from database."""
+    """Face from database."""
 
     def __init__(self, path):
-        """Construct DatabaseImage."""
+        """Construct Face."""
         self.path = path
         self.original = Image.open(path)
         self.img = self.face()
@@ -20,7 +20,7 @@ class DatabaseImage(object):
         self.sub_id = int(filename.split('_')[1])
 
     def __str__(self):
-        """Return string representation of DatabaseImage."""
+        """Return string representation of Face."""
         return "{img.id:3} {img.sub_id}".format(img=self)
 
     def edges(self):
@@ -36,14 +36,15 @@ class DatabaseImage(object):
         return self.img.size
 
     @property
-    def matrix(self):
-        """Return numpy matrix of image."""
+    def vector(self):
+        """Return column vector of image intensities."""
         size = self.size
         matrix = []
         for y in range(size[1]):
             matrix.append([self.img.getpixel((x, y)) for x in range(size[0])])
 
-        return np.matrix(matrix)
+        matrix = np.matrix(matrix)
+        return matrix.reshape((size[0] * self.size[1], 1))
 
     def face(self):
         img = self.edges()
@@ -93,16 +94,18 @@ class DatabaseImage(object):
         return int(np.median(right_most_points))
 
 
-def get_images():
+def get_faces():
     """Get images."""
     for root, directories, filenames in os.walk('database'):
         for filename in filenames:
             if filename.endswith('.gif'):
                 path = os.path.join(root, filename)
-                yield DatabaseImage(path)
+                yield Face(path)
 
 
 if __name__ == '__main__':
-    for image in get_images():
-        image.img.show()
+    for face in get_faces():
+        # face.img.show()
+        print face.size
+        print np.shape(face.vector)
         break
