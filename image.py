@@ -93,4 +93,5 @@ if __name__ == '__main__':
     for image in get_images():
         image.bmp.show()
         print image.matrix
+        print image.get_leftside_average
         break
