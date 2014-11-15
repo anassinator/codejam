@@ -1,7 +1,6 @@
 """Image."""
 
-from PIL import Image, ImageFilter, ImageDraw
-import time
+from PIL import Image, ImageFilter
 import numpy as np
 import os
 
@@ -13,7 +12,8 @@ class DatabaseImage(object):
     def __init__(self, path):
         """Construct DatabaseImage."""
         self.path = path
-        self.bmp = Image.open(path)
+        self.original = Image.open(path)
+        self.img = self.face()
 
         filename = os.path.basename(path)
         self.id = int(filename.split('_')[0])
@@ -25,16 +25,15 @@ class DatabaseImage(object):
 
     def edges(self):
         """Find edges of image."""
-        smooth = self.bmp.filter(ImageFilter.BLUR)
+        smooth = self.original.filter(ImageFilter.BLUR)
         edges = smooth.filter(ImageFilter.FIND_EDGES)
         blur = edges.filter(ImageFilter.BLUR)
         return blur
-        # WIP
 
     @property
     def size(self):
         """Return size of image in (x, y)."""
-        return self.bmp.size
+        return self.img.size
 
     @property
     def matrix(self):
@@ -42,21 +41,21 @@ class DatabaseImage(object):
         size = self.size
         matrix = []
         for y in range(size[1]):
-            matrix.append([self.bmp.getpixel((x, y)) for x in range(size[0])])
+            matrix.append([self.img.getpixel((x, y)) for x in range(size[0])])
 
         return np.matrix(matrix)
 
-    def crop_and_center(self):
+    def face(self):
         img = self.edges()
         leftside_face = self.get_leftside_average(img)
         rightside_face = self.get_rightside_average(img)
 
         face_center = (leftside_face + rightside_face) / 2
-        left_edge_crop = face_center - self.size[1] / 2
-        right_edge_crop = face_center + self.size[1] / 2
+        left_edge_crop = face_center - self.original.size[1] / 2
+        right_edge_crop = face_center + self.original.size[1] / 2
 
-        return self.bmp.crop(
-            [left_edge_crop, 0, right_edge_crop, self.size[1]]
+        return self.original.crop(
+            [left_edge_crop, 0, right_edge_crop, self.original.size[1]]
         )
 
     def get_leftside_average(self, img):
@@ -105,5 +104,5 @@ def get_images():
 
 if __name__ == '__main__':
     for image in get_images():
-        image.crop_and_center().show()
-        time.sleep(2)
+        image.img.show()
+        break
