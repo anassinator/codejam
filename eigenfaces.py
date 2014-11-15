@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 import numpy as np
-from image import DatabaseImage as data
+from face import Face 
+import os
 
 class EigenFaces(object):
     def __init__(self,faces):
-        self.matrix = []
-        for face in faces:
-            self.matrix.append(face)
-
-        covariance = np.dot(np.transpose(self.matrix), self.matrix)
+        self.matrix = faces[0]
+        for face in faces[1:]:
+            np.hstack((self.matrix, face))
+        self.matrix_t = np.transpose(self.matrix)
+        covariance = self.matrix_t.dot(self.matrix)
     
         self.eigenvalues, self.eigenvectors = np.linalg.eig(covariance)
-        self.eigenvectors = self.eigenvectors / np.linalg.norm(self.eigenvectors)
+        self.eigenvectors = np.dot(self.eigenvectors / np.linalg.norm(self.eigenvectors) , self.matrix)
+        print self.eigenvectors    
         self.eigenvectors_t = np.transpose(self.eigenvectors)
         
         self.average = self.matrix[0]
@@ -21,23 +23,34 @@ class EigenFaces(object):
         "print self.average" 
  
     def weightvector(self,face): 
-        return np.dot(np.transpose(self.eigenvectors),np.subtract(face,self.average))
+        return np.dot(self.eigenvectors,np.subtract(face,self.average))
 
     @staticmethod
     def distance(vector1,vector2):
         return np.linalg.norm(vector1-vector2)
 
-    
+    def average_weightvector(self):
+        vector = self.weightvector(self,self.matrix[0])
+        for x in range(1,len(self.matrix)):
+            vector = np.add(vector,self.weightvector(self, self.matrix[x]))
+        vector/float(len(eigenfaces.eigenvectors))
+        return vector
+
 def main():
-    data("/")
-    face2 = np.arange(1,40,2)
-    face3 = np.arange(1,80,4)
-    a = [face1,face2,face3]
+    face1 = Face('/CodeJam/database/1_2_.gif').vector
+    face3 = Face('/CodeJam/database/1_4_.gif').vector
+    face4 = Face('/CodeJam/database/1_5_.gif').vector
+    face5 = Face('/CodeJam/database/1_6_.gif').vector
+    face6 = Face('/CodeJam/database/1_7_.gif').vector
+    face7 = Face('/CodeJam/database/1_9_.gif').vector
+    face8 = Face('/CodeJam/database/1_10_.gif').vector
+    face9 = Face('/CodeJam/database/1_11_.gif').vector
+    a = [face1, face3, face4, face5, face6, face7, face8, face9]
     eigenfaces = EigenFaces(a)
-    c = eigenfaces.weightvector(face1)
-    d = eigenfaces.weightvector(face2)
-    print c
-    print d
+    testFace1 = Face('/CodeJam/database/1_2_.gif').vector
+    testFace2 = Face('/CodeJam/database/7_1_.gif').vector
+    print eigenfaces.distance(eigenfaces.weightvector(testFace1),eigenfaces.average_weightvector())
+    print eigenfaces.distance(eigenfaces.weightvector(testFace2),eigenfaces.average_weightvector())
 
 if __name__ == '__main__':
     main()
