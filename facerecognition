@@ -79,7 +79,7 @@ class EigenFaces(object):
 
     def similarity_the_dumb_way(self, face):
         """Return similarity to a face the dumb way."""
-        lolface = Face('database/1_2_.gif')
+        lolface = Face('/CodeJam/database/1_2_.gif')
         lolface.vector = face.vector - self.average
         if debug:
             lolface.img.show()
