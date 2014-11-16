@@ -75,7 +75,7 @@ class Face(object):
 
         return img.crop(
             [left_edge_crop, top, right_edge_crop, bottom]
-        ).filter(ImageFilter.BLUR)
+        )
 
     def _get_left_median(self, img):
         """Return the mean of the left side of the image."""
