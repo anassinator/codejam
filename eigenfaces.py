@@ -10,32 +10,43 @@ class EigenFaces(object):
     def __init__(self, faces):
         """Construct EigenFaces object."""
         hangman = faces[0].vector
+
         for face in faces[1:]:
             hangman = np.hstack((hangman, face.vector))
 
-        self.average = hangman.sum(axis=1) / float(len(faces))
+        self.average = np.divide(hangman.sum(axis=1), float(len(faces)))
 
         self.matrix = np.subtract(faces[0].vector, self.average)
         for face in faces[1:]:
             current_face = np.subtract(face.vector, self.average)
             self.matrix = np.hstack((self.matrix, current_face))
 
+        # GET EIGENVECTORS
         matrix_t = np.transpose(self.matrix)
         not_covariance = np.dot(matrix_t, self.matrix)
-        eigenvalues, eigenvectors = np.linalg.eig(not_covariance)
+        all_eigenvalues, all_eigenvectors = np.linalg.eig(not_covariance)
+        good_eigenvalues = sorted(
+            enumerate(all_eigenvalues),
+            key=lambda x: x[1]
+        )[-3:]
+        good_indices = [col for col, eig in good_eigenvalues]
+        eigenvectors = all_eigenvectors[:, good_indices]
 
+        # GET EIGENFACES
         eigenvectors = np.dot(
             self.matrix,
             eigenvectors
         )
 
+        # NORMALIZING
         for column in range(np.shape(eigenvectors)[1]):
             current_column = eigenvectors[:, column]
+            faces[column].vector = current_column
+            norm = np.linalg.norm(current_column)
             eigenvectors[:, column] = np.divide(
-                current_column, np.linalg.norm(current_column)
+                current_column, norm
             )
-
-        print np.shape(eigenvectors)
+            faces[column].img.show()
 
         self.eigenvectors_t = np.transpose(eigenvectors)
 
@@ -60,8 +71,12 @@ class EigenFaces(object):
             current_weight = self.weightvector(self.matrix[:, column])
             vector = np.hstack((vector, current_weight))
 
-        vector = vector.sum(axis=1) / float(np.shape(self.eigenvectors_t)[1])
-
+        vector = np.divide(
+            vector.sum(axis=1), float(np.shape(self.eigenvectors_t)[1])
+        )
+        avg = Face('database/1_2_.gif')
+        avg.vector = self.average
+        avg.img.show()
         return vector
 
 
@@ -71,6 +86,7 @@ def main():
     eigenfaces = EigenFaces(faces)
     testFace1 = Face('database/1_2_.gif').vector
     testFace2 = Face('database/8_1_.gif').vector
+
     print eigenfaces.distance(eigenfaces.weightvector(testFace1))
     print eigenfaces.distance(eigenfaces.weightvector(testFace2))
 

@@ -2,7 +2,6 @@
 
 from PIL import Image, ImageFilter
 import numpy as np
-import time
 import os
 
 
@@ -14,7 +13,7 @@ class Face(object):
         """Construct Face."""
         self.path = path
         original = Image.open(path)
-        original = original.resize((int(s / 4) for s in original.size))
+        original = original.resize((int(s / 1) for s in original.size))
         self.img = self.face(original)
 
         filename = os.path.basename(path)
@@ -43,11 +42,22 @@ class Face(object):
         """Return column vector of image intensities."""
         size = self.size
         matrix = []
-        for y in range(size[1]):
-            matrix.append([self.img.getpixel((x, y)) for x in range(size[0])])
+        for row in range(size[0]):
+            for col in range(size[1]):
+                a = self.img.getpixel((row, col))
+                matrix.append(a)
 
-        matrix = np.matrix(matrix)
-        return matrix.reshape((size[0] * self.size[1], 1))
+        matrix = np.matrix(matrix).reshape((size[0] * size[1], 1))
+        return matrix
+
+    @vector.setter
+    def vector(self, value):
+        """Modify face."""
+        size = self.size
+        value = value.reshape(size)
+        for y in range(size[1]):
+            for x in range(size[0]):
+                self.img.putpixel((x, y), value[x, y])
 
     def face(self, img):
         """Return face."""
@@ -114,4 +124,6 @@ def get_faces_by_id(id_name=None):
 if __name__ == '__main__':
     for face in get_faces_by_id(1):
         face.img.show()
-        time.sleep(0.5)
+        face.vector = face.vector
+        face.img.show()
+        break
