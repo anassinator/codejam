@@ -130,9 +130,13 @@ def test_id_the_dumb_way(id_name):
 
 
 if __name__ == '__main__':
-    path = sys.argv[1] if len(sys.argv) == 2 else 'database/13_2_.gif'
+    path = sys.argv[1] if len(sys.argv) == 2 else '/CodeJam/database/13_2_.gif'
     print 'given:', path
     face = Face(path)
     face_id, similarity = get_id_the_dumb_way(face)
-    print 'recognized:', face_id
+    print 'recognized:',
+    if similarity < 1700:
+        print face_id
+    else:
+        print 'i dunno, but maybe', face.id
     print 'with a similarity of', int(similarity)

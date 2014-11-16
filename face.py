@@ -14,8 +14,9 @@ class Face(object):
         self.path = path
         original = Image.open(path)
         original = original.resize(
-		(int(original.size[0] / 3), int(original.size[1] / 3))
-	)
+            (int(original.size[0] / 3),
+             int(original.size[1] / 3))
+        )
         self.img = self.face(original)
 
         filename = os.path.basename(path)
