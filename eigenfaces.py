@@ -18,39 +18,43 @@ class EigenFaces(object):
         self.eigenvalues, self.eigenvectors = np.linalg.eig(covariance)
 
         self.eigenvectors = np.dot(
-            self.eigenvectors / np.linalg.norm(self.eigenvectors),
-            self.matrix_t
+            self.matrix,
+            self.eigenvectors / np.linalg.norm(self.eigenvectors)
         )
 
         self.eigenvectors_t = np.transpose(self.eigenvectors)
         self.average = self.matrix.sum(axis=1) / float(len(faces))
-        self.average = np.transpose(self.average)
 
         self.average_weight = self.average_weightvector()
-        print np.shape(self.average_weight)
 
     def weightvector(self, face):
         """Return weight vector."""
-        return np.dot(
-            self.eigenvectors,
+        weight = np.dot(
+            self.eigenvectors_t,
             np.subtract(face, self.average)
         )
+        return weight
 
     def distance(self, vector):
-        """Return Eucledian distance between vectors."""
-        return np.linalg.norm(vector - self.average_weight)
+        """Return Eucledian distance to average weight vector."""
+        print 'distance', np.shape(self.average_weight)
+        return np.linalg.norm(np.subtract(vector, self.average_weight))
 
     def average_weightvector(self):
         """Return average weight vector."""
         vector = self.weightvector(self.matrix[:, 0])
-        for column in range(np.shape(self.matrix)[1]):
-            vector = np.hstack(
-                (vector,
-                 self.weightvector(self.matrix[:, column]))
-            )
+        print np.shape(self.matrix[:, 0])
+        for column in range(1, np.shape(self.matrix)[1]):
+            current_weight = self.weightvector(self.matrix[:, column])
+            print current_weight
+            vector = np.hstack((vector, current_weight))
 
-        vector = vector.sum(axis=1) / float(len(self.eigenvectors))
-        vector = np.transpose(vector)
+        print 'all weights', np.shape(vector), np.shape(self.eigenvectors)
+        print vector
+
+        vector = vector.sum(axis=1) / float(np.shape(self.eigenvectors)[1])
+
+        print 'average', np.shape(vector), vector, float(np.shape(self.eigenvectors)[1])
         return vector
 
 

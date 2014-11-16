@@ -14,7 +14,7 @@ class Face(object):
         """Construct Face."""
         self.path = path
         original = Image.open(path)
-        original = original.resize((int(s / 4) for s in original.size))
+        original = original.resize((int(s) for s in original.size))
         self.img = self.face(original)
 
         filename = os.path.basename(path)
