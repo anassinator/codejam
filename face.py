@@ -13,8 +13,9 @@ class Face(object):
     def __init__(self, path):
         """Construct Face."""
         self.path = path
-        self.original = Image.open(path)
-        self.img = self.face()
+        original = Image.open(path)
+        original = original.resize((int(s / 4) for s in original.size))
+        self.img = self.face(original)
 
         filename = os.path.basename(path)
         self.id = int(filename.split('_')[0])
@@ -24,9 +25,10 @@ class Face(object):
         """Return string representation of Face."""
         return "{img.id:3} {img.sub_id}".format(img=self)
 
-    def edges(self):
+    @staticmethod
+    def edges(img):
         """Find edges of image."""
-        smooth = self.original.filter(ImageFilter.BLUR)
+        smooth = img.filter(ImageFilter.BLUR)
         edges = smooth.filter(ImageFilter.FIND_EDGES)
         blur = edges.filter(ImageFilter.BLUR)
         return blur
@@ -47,18 +49,18 @@ class Face(object):
         matrix = np.matrix(matrix)
         return matrix.reshape((size[0] * self.size[1], 1))
 
-    def face(self):
+    def face(self, img):
         """Return face."""
-        img = self.edges()
-        leftside_face = self._get_left_median(img)
-        rightside_face = self._get_right_median(img)
+        edges = Face.edges(img)
+        leftside_face = self._get_left_median(edges)
+        rightside_face = self._get_right_median(edges)
 
         face_center = (leftside_face + rightside_face) / 2
-        left_edge_crop = face_center - self.original.size[1] / 2
-        right_edge_crop = face_center + self.original.size[1] / 2
+        left_edge_crop = face_center - img.size[1] / 2
+        right_edge_crop = face_center + img.size[1] / 2
 
-        return self.original.crop(
-            [left_edge_crop, 0, right_edge_crop, self.original.size[1]]
+        return img.crop(
+            [left_edge_crop, 0, right_edge_crop, img.size[1]]
         )
 
     def _get_left_median(self, img):
