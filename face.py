@@ -2,6 +2,7 @@
 
 from PIL import Image, ImageFilter
 import numpy as np
+import time
 import os
 
 
@@ -47,9 +48,10 @@ class Face(object):
         return matrix.reshape((size[0] * self.size[1], 1))
 
     def face(self):
+        """Return face."""
         img = self.edges()
-        leftside_face = self.get_leftside_average(img)
-        rightside_face = self.get_rightside_average(img)
+        leftside_face = self._get_left_median(img)
+        rightside_face = self._get_right_median(img)
 
         face_center = (leftside_face + rightside_face) / 2
         left_edge_crop = face_center - self.original.size[1] / 2
@@ -59,8 +61,8 @@ class Face(object):
             [left_edge_crop, 0, right_edge_crop, self.original.size[1]]
         )
 
-    def get_leftside_average(self, img):
-        """Return the value of the average of the left_most_points."""
+    def _get_left_median(self, img):
+        """Return the mean of the left side of the image."""
         width = img.size[0]
         height = img.size[1]
 
@@ -68,16 +70,16 @@ class Face(object):
         for y in range(int(height / 5), int(6 * height / 7)):
             row = [
                 (img.getpixel((x, y)), x)
-                for x in range(width / 10, width / 2)
+                for x in range(10, width / 2)
             ]
-            sorted_row = sorted(row, key=lambda x: x[0])
+            sorted_row = sorted(row)
 
             left_most_points.append(sorted_row[-1][1])
 
         return int(np.median(left_most_points))
 
-    def get_rightside_average(self, img):
-        """Return the value of the average of the right_most_points."""
+    def _get_right_median(self, img):
+        """Return the mean of the right side of the image."""
         width = img.size[0]
         height = img.size[1]
 
@@ -85,27 +87,29 @@ class Face(object):
         for y in range(int(height / 5), int(6 * height / 7)):
             row = [
                 (img.getpixel((x, y)), x)
-                for x in range(9 * width / 10, width / 2, -1)
+                for x in range(width - 10, width / 2, -1)
             ]
-            sorted_row = sorted(row, key=lambda x: x[0])
+            sorted_row = sorted(row)
 
             right_most_points.append(sorted_row[-1][1])
 
         return int(np.median(right_most_points))
 
 
-def get_faces():
+def get_faces_by_id(id_name=None):
     """Get images."""
+    faces = []
+    id_name = "{id}_".format(id=id_name) if id_name else ''
     for root, directories, filenames in os.walk('database'):
         for filename in filenames:
-            if filename.endswith('.gif'):
+            if filename.startswith(id_name) and '_' in filename:
                 path = os.path.join(root, filename)
-                yield Face(path)
+                faces.append(Face(path))
+
+    return faces
 
 
 if __name__ == '__main__':
-    for face in get_faces():
+    for face in get_faces_by_id(1):
         face.img.show()
-        print face.size
-        print np.shape(face.vector)
-        break
+        time.sleep(0.5)
