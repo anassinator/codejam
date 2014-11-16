@@ -9,21 +9,35 @@ class EigenFaces(object):
 
     def __init__(self, faces):
         """Construct EigenFaces object."""
-        self.matrix = faces[0].vector
+        hangman = faces[0].vector
         for face in faces[1:]:
-            self.matrix = np.hstack((self.matrix, face.vector))
+            hangman = np.hstack((hangman, face.vector))
 
-        self.matrix_t = np.transpose(self.matrix)
-        covariance = self.matrix_t.dot(self.matrix)
-        self.eigenvalues, self.eigenvectors = np.linalg.eig(covariance)
+        self.average = hangman.sum(axis=1) / float(len(faces))
 
-        self.eigenvectors = np.dot(
+        self.matrix = np.subtract(faces[0].vector, self.average)
+        for face in faces[1:]:
+            current_face = np.subtract(face.vector, self.average)
+            self.matrix = np.hstack((self.matrix, current_face))
+
+        matrix_t = np.transpose(self.matrix)
+        not_covariance = np.dot(matrix_t, self.matrix)
+        eigenvalues, eigenvectors = np.linalg.eig(not_covariance)
+
+        eigenvectors = np.dot(
             self.matrix,
-            self.eigenvectors / np.linalg.norm(self.eigenvectors)
+            eigenvectors
         )
 
-        self.eigenvectors_t = np.transpose(self.eigenvectors)
-        self.average = self.matrix.sum(axis=1) / float(len(faces))
+        for column in range(np.shape(eigenvectors)[1]):
+            current_column = eigenvectors[:, column]
+            eigenvectors[:, column] = np.divide(
+                current_column, np.linalg.norm(current_column)
+            )
+
+        print np.shape(eigenvectors)
+
+        self.eigenvectors_t = np.transpose(eigenvectors)
 
         self.average_weight = self.average_weightvector()
 
@@ -37,24 +51,17 @@ class EigenFaces(object):
 
     def distance(self, vector):
         """Return Eucledian distance to average weight vector."""
-        print 'distance', np.shape(self.average_weight)
         return np.linalg.norm(np.subtract(vector, self.average_weight))
 
     def average_weightvector(self):
         """Return average weight vector."""
         vector = self.weightvector(self.matrix[:, 0])
-        print np.shape(self.matrix[:, 0])
         for column in range(1, np.shape(self.matrix)[1]):
             current_weight = self.weightvector(self.matrix[:, column])
-            print current_weight
             vector = np.hstack((vector, current_weight))
 
-        print 'all weights', np.shape(vector), np.shape(self.eigenvectors)
-        print vector
+        vector = vector.sum(axis=1) / float(np.shape(self.eigenvectors_t)[1])
 
-        vector = vector.sum(axis=1) / float(np.shape(self.eigenvectors)[1])
-
-        print 'average', np.shape(vector), vector, float(np.shape(self.eigenvectors)[1])
         return vector
 
 
@@ -63,7 +70,7 @@ def main():
     faces = get_faces_by_id(1)
     eigenfaces = EigenFaces(faces)
     testFace1 = Face('database/1_2_.gif').vector
-    testFace2 = Face('database/7_1_.gif').vector
+    testFace2 = Face('database/8_1_.gif').vector
     print eigenfaces.distance(eigenfaces.weightvector(testFace1))
     print eigenfaces.distance(eigenfaces.weightvector(testFace2))
 
