@@ -20,8 +20,12 @@ class Face(object):
         self.img = self.face(original)
 
         filename = os.path.basename(path)
-        self.id = int(filename.split('_')[0])
-        self.sub_id = int(filename.split('_')[1])
+        try:
+            self.id = int(filename.split('_')[0])
+            self.sub_id = int(filename.split('_')[1])
+        except ValueError:
+            self.id = None
+            self.sub_id = None
 
     def __str__(self):
         """Return string representation of Face."""
