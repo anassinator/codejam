@@ -9,11 +9,11 @@ class Face(object):
 
     """Face from database."""
 
-    def __init__(self, path):
+    def __init__(self, path=None):
         """Construct Face."""
         self.path = path
         original = Image.open(path)
-        original = original.resize((int(s / 1) for s in original.size))
+        original = original.resize((int(s / 3) for s in original.size))
         self.img = self.face(original)
 
         filename = os.path.basename(path)
@@ -66,12 +66,14 @@ class Face(object):
         rightside_face = self._get_right_median(edges)
 
         face_center = (leftside_face + rightside_face) / 2
-        left_edge_crop = face_center - img.size[1] / 2
-        right_edge_crop = face_center + img.size[1] / 2
+        top = int(img.size[1] / 5)
+        bottom = int(6 * img.size[1] / 7)
+        left_edge_crop = int(face_center - img.size[0] * 0.25)
+        right_edge_crop = int(face_center + img.size[0] * 0.25)
 
         return img.crop(
-            [left_edge_crop, 0, right_edge_crop, img.size[1]]
-        )
+            [left_edge_crop, top, right_edge_crop, bottom]
+        ).filter(ImageFilter.BLUR)
 
     def _get_left_median(self, img):
         """Return the mean of the left side of the image."""
@@ -114,7 +116,8 @@ def get_faces_by_id(id_name=None):
     id_name = "{id}_".format(id=id_name) if id_name else ''
     for root, directories, filenames in os.walk('database'):
         for filename in filenames:
-            if filename.startswith(id_name) and '_' in filename:
+            if (filename.startswith(id_name) and '_' in filename
+                    and not 'DS' in filename):
                 path = os.path.join(root, filename)
                 faces.append(Face(path))
 
@@ -122,7 +125,7 @@ def get_faces_by_id(id_name=None):
 
 
 if __name__ == '__main__':
-    for face in get_faces_by_id(1):
+    for face in get_faces_by_id(6):
         face.img.show()
         face.vector = face.vector
         face.img.show()
