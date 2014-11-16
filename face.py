@@ -120,7 +120,7 @@ def get_faces_by_id(id_name=None):
     """Get images."""
     faces = []
     id_name = "{id}_".format(id=id_name) if id_name else ''
-    for root, directories, filenames in os.walk('/CodeJam/database'):
+    for root, directories, filenames in os.walk('database'):
         for filename in filenames:
             if (filename.startswith(id_name) and '_' in filename
                     and not 'DS' in filename):

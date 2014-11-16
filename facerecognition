@@ -79,7 +79,7 @@ class EigenFaces(object):
 
     def similarity_the_dumb_way(self, face):
         """Return similarity to a face the dumb way."""
-        lolface = Face('/CodeJam/database/1_2_.gif')
+        lolface = Face('database/1_2_.gif')
         lolface.vector = face.vector - self.average
         if debug:
             lolface.img.show()
@@ -130,7 +130,7 @@ def test_id_the_dumb_way(id_name):
 
 
 if __name__ == '__main__':
-    path = sys.argv[1] if len(sys.argv) == 2 else '/CodeJam/database/13_2_.gif'
+    path = sys.argv[1] if len(sys.argv) == 2 else 'database/13_2_.gif'
     print 'given:', path
     face = Face(path)
     face_id, similarity = get_id_the_dumb_way(face)
